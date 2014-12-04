@@ -6,9 +6,9 @@ use Toper\GuzzleClientFactory;
 use Toper\StaticHostPoolProvider;
 
 /**
- * Class php_crate
+ * Class crate
  */
-class php_crate  {
+class crate  {
 
     /**
      * @var StaticHostPoolProvider

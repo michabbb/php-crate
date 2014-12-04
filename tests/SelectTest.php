@@ -8,7 +8,7 @@ class SelectTest extends \PHPUnit_Framework_TestCase {
      */
     public function test_select() {
         global $POOL,$APIURL,$SQL;
-        $CRATE = new php_crate($POOL,$APIURL);
+        $CRATE = new crate($POOL,$APIURL);
         $result = $CRATE->sql($SQL);
         print_r($result);
         $this->assertTrue($result['state']);
