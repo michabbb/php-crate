@@ -1,7 +1,13 @@
 php-crate
 =========
 
-A PHP helper class for working with the crate db
+A PHP helper class for working with the crate db  
+using a round robin connection pool based on a modified version of [allegro/toper](https://github.com/allegro/toper)
+
+Notice
+-----------
+i use a modified version of [allegro/toper](https://github.com/allegro/toper) where the original
+guzzle response object gets returned
 
 Quick start
 -----------
@@ -11,7 +17,7 @@ $APIURL = "/_sql?pretty";
 $POOL   = "http://127.0.0.1:4200,http://127.0.0.1:4201,http://127.0.0.1:4202";
 $SQL    = "select id from test";
 
-$CRATE = new php_crate($POOL,$APIURL);
+$CRATE = new crate($POOL,$APIURL);
 $result = $CRATE->sql($SQL);
 ```
 
