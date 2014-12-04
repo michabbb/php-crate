@@ -1,0 +1,29 @@
+{
+  "name": "michabbb/php-crate",
+  "description": "A PHP Helper Class working with the crate db",
+  "license" : "proprietary",
+  "authors": [
+    {
+      "name": "Michael Bladowski",
+      "email": "info@macropage.de"
+    }
+  ],
+  "require": {
+    "php" : ">=5.3",
+    "michabbb/toper": "dev-master",
+    "guzzle/guzzle": "dev-master",
+    "phpunit/phpunit": "4.1.*@dev"
+  },
+
+  "autoload": {
+    "classmap": ["src/"]
+  },
+
+  "repositories": [
+    {
+      "url": "https://github.com/michabbb/toper.git",
+      "type": "git"
+    }
+  ]
+
+}
