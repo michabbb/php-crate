@@ -1,8 +1,8 @@
 php-crate
 =========
 
-A PHP helper class for working with the crate db
-Use a round robin implemention of a connection pool bases on a modifies version [allegro/toper](https://github.com/allegro/toper)
+A PHP helper class for working with the crate db  
+using a round robin connection pool based on a modified version of [allegro/toper](https://github.com/allegro/toper)
 
 Notice
 -----------
