@@ -48,11 +48,18 @@ class crate  {
             $result = $response->json();
             $this->Cols = $result['cols'];
             foreach ($result['rows'] as $i => $row) {
+                /* php 5.5
                 array_walk($row, function (&$v, $k,$i) {
                     global $row;
                     $row[$this->Cols[$k]]=$v;
                     $this->ParsedRows[$i] = $row;
                 },$i);
+                */
+                $newrow = array();
+                foreach ($row as $num => $value) {
+                    $newrow[$this->Cols[$num]] = $value;
+                }
+                $this->ParsedRows[$i] = $newrow;
             }
             $result['rows'] = $this->ParsedRows;
             unset($this->ParsedRows);
