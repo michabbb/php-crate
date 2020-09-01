@@ -10,8 +10,8 @@ class SelectTest extends TestCase {
      * @outputBuffering enabled
      */
     public function test_select(): void {
-        global $POOL,$APIURL,$SQL;
-        $CRATE = new crate($POOL,$APIURL);
+        global $APIURL,$SQL;
+        $CRATE = new crate($APIURL);
         $result = $CRATE->sql($SQL);
         print_r($result);
         $this->assertTrue($result['state']);

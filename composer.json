@@ -10,7 +10,7 @@
   ],
   "require": {
     "php" : ">=7.4",
-    "michabbb/toper": "dev-php7",
+    "guzzlehttp/guzzle": "7.*",
     "ext-json": "*"
   },
   "require-dev": {

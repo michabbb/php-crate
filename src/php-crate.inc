@@ -1,51 +1,43 @@
 <?php
 namespace macropage\helper\crate;
 
-use Toper\Client;
-use Toper\GuzzleClientFactory;
-use Toper\StaticHostPoolProvider;
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\Psr7\Request;
 
 /**
  * Class crate
  */
 class crate  {
 
-    /**
-     * @var StaticHostPoolProvider
-     */
-	private StaticHostPoolProvider $hostPollProvider;
     private string $CrateApiUrl;
+	private array  $RequestOptions;
 
-	public function __construct($connection_pool,$url) {
-        $this->hostPollProvider = new StaticHostPoolProvider(
-            explode(',',$connection_pool)
-        );
+	public function __construct($url,array $request_options = []) {
         $this->CrateApiUrl = $url;
+        $this->RequestOptions = $request_options;
     }
 
     public function sql($sql): ?array {
-        $guzzleClientFactory = new GuzzleClientFactory();
-        $toper = new Client($this->hostPollProvider, $guzzleClientFactory);
-        $request = $toper->post($this->CrateApiUrl);
 		try {
-			$request->setBody(json_encode(['stmt' => $sql], JSON_THROW_ON_ERROR));
+			$body = json_encode(['stmt' => $sql], JSON_THROW_ON_ERROR);
 		} catch (\JsonException $e) {
 			throw new \RuntimeException($e->getMessage());
 		}
+		$Client = new Client();
+        $headers = (array_key_exists('headers',$this->RequestOptions)) ? $this->RequestOptions['headers'] : [];
+        $Request = new Request('POST',$this->CrateApiUrl,$headers,$body);
 		try {
-            $response = $request->send();
-        } catch (\Exception $e) {
-            echo "Exception: ".$e."\n";
-            // unable to connect to host
-            if (strpos($e,'[curl] 7')!==false) {
-                preg_match('/:\s(.*)\'/',$e,$matches);
-                return array('state' => false, 'message' => ($matches[1]) ?: $e);
-            }
-
+            $response = $Client->send($Request);
+        } catch (GuzzleException $e) {
+			// unable to connect to host
+			if (strpos($e,'[curl] 7')!==false) {
+				preg_match('/:\s(.*)\'/',$e,$matches);
+				return array('state' => false, 'message' => ($matches[1]) ?: $e);
+			}
 			return array('state' => false, 'message' => $e);
 		}
-        $Cols       = array();
-        $ParsedRows = array();
+		$ParsedRows = [];
         if($response->getStatusCode() === 200) {
 			try {
 				$result = json_decode($response->getBody()->getContents(), JSON_THROW_ON_ERROR, 512, JSON_THROW_ON_ERROR);
@@ -54,7 +46,7 @@ class crate  {
 			}
 			$Cols = $result['cols'];
             foreach ($result['rows'] as $i => $row) {
-                $newrow = array();
+                $newrow = [];
                 foreach ($row as $num => $value) {
 					$newrow[$Cols[$num]] = $value;
                 }
