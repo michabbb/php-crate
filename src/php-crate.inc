@@ -13,61 +13,65 @@ class crate  {
     /**
      * @var StaticHostPoolProvider
      */
-    private $hostPollProvider;
-    private $CrateApiUrl;
-    private $Cols = array();
-    private $ParsedRows = array();
+	private StaticHostPoolProvider $hostPollProvider;
+    private string $CrateApiUrl;
 
-    public function __construct($connection_pool,$url) {
+	public function __construct($connection_pool,$url) {
         $this->hostPollProvider = new StaticHostPoolProvider(
             explode(',',$connection_pool)
         );
         $this->CrateApiUrl = $url;
     }
 
-    public function sql($sql) {
+    public function sql($sql): ?array {
         $guzzleClientFactory = new GuzzleClientFactory();
         $toper = new Client($this->hostPollProvider, $guzzleClientFactory);
         $request = $toper->post($this->CrateApiUrl);
-        $request->setBody(json_encode(array('stmt' => $sql)));
-        try {
+		try {
+			$request->setBody(json_encode(['stmt' => $sql], JSON_THROW_ON_ERROR));
+		} catch (\JsonException $e) {
+			throw new \RuntimeException($e->getMessage());
+		}
+		try {
             $response = $request->send();
         } catch (\Exception $e) {
             echo "Exception: ".$e."\n";
             // unable to connect to host
             if (strpos($e,'[curl] 7')!==false) {
                 preg_match('/:\s(.*)\'/',$e,$matches);
-                return array('state' => false, 'message' => ($matches[1]) ? $matches[1] : $e);
-            } else {
-                return array('state' => false, 'message' => $e);
+                return array('state' => false, 'message' => ($matches[1]) ?: $e);
             }
-        }
-        $this->Cols = array();
-        $this->ParsedRows = array();
-        if($response->getStatusCode() == 200) {
-            $result = $response->json();
-            $this->Cols = $result['cols'];
+
+			return array('state' => false, 'message' => $e);
+		}
+        $Cols       = array();
+        $ParsedRows = array();
+        if($response->getStatusCode() === 200) {
+			try {
+				$result = json_decode($response->getBody()->getContents(), JSON_THROW_ON_ERROR, 512, JSON_THROW_ON_ERROR);
+			} catch (\JsonException $e) {
+				throw new \RuntimeException($e->getMessage());
+			}
+			$Cols = $result['cols'];
             foreach ($result['rows'] as $i => $row) {
-                /* php 5.5
-                array_walk($row, function (&$v, $k,$i) {
-                    global $row;
-                    $row[$this->Cols[$k]]=$v;
-                    $this->ParsedRows[$i] = $row;
-                },$i);
-                */
                 $newrow = array();
                 foreach ($row as $num => $value) {
-                    $newrow[$this->Cols[$num]] = $value;
+					$newrow[$Cols[$num]] = $value;
                 }
-                $this->ParsedRows[$i] = $newrow;
+				$ParsedRows[$i] = $newrow;
             }
-            $result['rows'] = $this->ParsedRows;
-            unset($this->ParsedRows);
+            $result['rows'] = $ParsedRows;
+            unset($ParsedRows);
             return array('state' => true,'status' => $response->getStatusCode(), 'result' => $result['rows'],'numrows' => $result['rowcount'],'duration' => $result['duration']);
-        } else {
-            $result = $response->json();
-            return array('state' => false,'status' => $response->getStatusCode(), 'message' => $result['error']['message'],'code' => $result['error']['code']);
         }
-    }
+
+		try {
+			$result = json_decode($response->getBody()->getContents(), JSON_THROW_ON_ERROR, 512, JSON_THROW_ON_ERROR);
+		} catch (\JsonException $e) {
+			throw new \RuntimeException($e->getMessage());
+		}
+
+		return array('state' => false, 'status' => $response->getStatusCode(), 'message' => $result['error']['message'], 'code' => $result['error']['code']);
+	}
 }
 

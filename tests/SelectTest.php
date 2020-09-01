@@ -1,12 +1,15 @@
-<?php
+<?php /** @noinspection PhpIllegalPsrClassPathInspection */
+
 namespace macropage\helper\crate;
 
-class SelectTest extends \PHPUnit_Framework_TestCase {
+use PHPUnit\Framework\TestCase;
+
+class SelectTest extends TestCase {
 
     /**
      * @outputBuffering enabled
      */
-    public function test_select() {
+    public function test_select(): void {
         global $POOL,$APIURL,$SQL;
         $CRATE = new crate($POOL,$APIURL);
         $result = $CRATE->sql($SQL);
