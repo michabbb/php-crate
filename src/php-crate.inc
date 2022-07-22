@@ -29,7 +29,7 @@ class crate  {
         $Request = new Request('POST',$this->CrateApiUrl,$headers,$body);
 		try {
             $response = $Client->send($Request);
-        } catch (GuzzleException $e) {
+        } catch (\RuntimeException $e) {
 			// unable to connect to host
 			if (strpos($e,'[curl] 7')!==false) {
 				preg_match('/:\s(.*)\'/',$e,$matches);
